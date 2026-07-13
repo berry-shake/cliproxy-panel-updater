@@ -108,7 +108,7 @@ repository.
 Registered at `management.register`:
 
 - Resource (no auth, GET):
-  - `GET /v0/resource/plugins/panel-updater/` — single self-contained HTML
+  - `GET /v0/resource/plugins/panel-updater/panel` — single self-contained HTML
     page (inline CSS/JS, no external assets). Menu label: `Panel Updater`.
     The page shows: resolved static dir, config file path, effective
     panel repository, file presence/size/mtime/hash (filled via the
