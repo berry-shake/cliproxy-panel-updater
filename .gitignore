@@ -1,0 +1,6 @@
+.idea/
+.vscode/
+*.so
+*.dylib
+*.dll
+*.h
