@@ -150,10 +150,12 @@ Mirrors `EnsureLatestManagementHTML`:
    digest when present; on mismatch → error, do not write.
 8. Atomic write: temp file in the static dir + `os.Rename` to
    `management.html`.
-9. On any GitHub-path failure (steps 4–7): download
-   `https://cpamc.router-for.me/` via `host.http.do`, write atomically,
-   return `source: "fallback"` with a warning message (no digest
-   verification possible).
+9. On a GitHub-path failure (steps 4–7) **and only when the local
+   `management.html` is missing**: download `https://cpamc.router-for.me/`
+   via `host.http.do`, write atomically, and return `source: "fallback"`
+   with a warning message (no digest verification possible). If a local
+   panel already exists, preserve it and report the GitHub failure.
+   Digest mismatch is always a hard failure and never falls back.
 10. A mutex serializes concurrent update requests (second caller gets
     `409` with a "update already in progress" message).
 
@@ -212,7 +214,7 @@ Workflow `build.yml`, triggered on tag push (`v*`) and manual dispatch:
 |---|---|---|
 | `panel-updater-v<ver>-linux-amd64.so` | ubuntu-latest | native cgo |
 | `panel-updater-v<ver>-linux-arm64.so` | ubuntu-24.04-arm | native cgo |
-| `panel-updater-v<ver>-darwin-amd64.dylib` | macos-13 | native cgo |
+| `panel-updater-v<ver>-darwin-amd64.dylib` | macos-15-intel | native cgo |
 | `panel-updater-v<ver>-darwin-arm64.dylib` | macos-latest | native cgo |
 | `panel-updater-v<ver>-windows-amd64.dll` | windows-latest | native cgo (MinGW preinstalled) |
 
