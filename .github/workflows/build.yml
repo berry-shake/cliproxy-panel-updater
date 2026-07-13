@@ -82,14 +82,18 @@ jobs:
           else
             VERSION="0.0.0-dev"
           fi
+          # Build with a plain file name first: Go 1.26 embeds the output
+          # name into a linker .def file, and GNU ld rejects names with
+          # extra dots (e.g. "v0.1") on Windows. Rename afterwards.
+          BUILD_OUTPUT="panel-updater.${EXTENSION}"
           OUTPUT="panel-updater-v${VERSION}-${TARGET_GOOS}-${TARGET_GOARCH}.${EXTENSION}"
           CGO_ENABLED=1 GOOS="${TARGET_GOOS}" GOARCH="${TARGET_GOARCH}" \
             go build -buildmode=c-shared -trimpath \
             -ldflags "-s -w -X main.pluginVersion=${VERSION}" \
-            -o "${OUTPUT}" .
-          rm -f "${OUTPUT%.*}.h"
+            -o "${BUILD_OUTPUT}" .
+          rm -f "${BUILD_OUTPUT%.*}.h"
           mkdir -p dist
-          mv "${OUTPUT}" dist/
+          mv "${BUILD_OUTPUT}" "dist/${OUTPUT}"
       - uses: actions/upload-artifact@v4
         with:
           name: panel-updater-${{ matrix.goos }}-${{ matrix.goarch }}
