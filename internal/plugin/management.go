@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/berry-shake/cliproxy-panel-updater/internal/updater"
@@ -40,16 +42,64 @@ func (s *Service) handleManagement(req managementRPCRequest) pluginapi.Managemen
 	if req.Method != http.MethodGet {
 		return jsonResponse(http.StatusMethodNotAllowed, errorBody{Error: "method_not_allowed", Message: "only GET is accepted on resource routes"})
 	}
+	origins := s.AllowedOrigins()
 	switch req.Path {
 	case statusPath:
+		if resp, ok := s.enforceOrigin(req, origins); !ok {
+			return resp
+		}
 		return s.status()
 	case updatePath:
+		if resp, ok := s.enforceOrigin(req, origins); !ok {
+			return resp
+		}
 		return s.update(req.HostCallbackID)
 	case panelPath:
-		return panelResponse()
+		return panelResponse(origins)
 	default:
 		return jsonResponse(http.StatusNotFound, errorBody{Error: "not_found", Message: "plugin route not found"})
 	}
+}
+
+// enforceOrigin rejects cross-origin requests when allowed_origins is
+// configured. Requests without an Origin or Referer header are treated as
+// same-origin (browser omits Origin for top-level GETs and CLI tools do not
+// send it at all). An empty allowed_origins list disables the check.
+func (s *Service) enforceOrigin(req managementRPCRequest, allowed []string) (pluginapi.ManagementResponse, bool) {
+	if len(allowed) == 0 {
+		return pluginapi.ManagementResponse{}, true
+	}
+	origin := requestOrigin(req.Headers)
+	if origin == "" {
+		return pluginapi.ManagementResponse{}, true
+	}
+	for _, candidate := range allowed {
+		if strings.EqualFold(candidate, origin) {
+			return pluginapi.ManagementResponse{}, true
+		}
+	}
+	return jsonResponse(http.StatusForbidden, errorBody{
+		Error:   "origin_not_allowed",
+		Message: "request origin is not in allowed_origins",
+	}), false
+}
+
+func requestOrigin(headers http.Header) string {
+	if headers == nil {
+		return ""
+	}
+	if raw := strings.TrimSpace(headers.Get("Origin")); raw != "" && raw != "null" {
+		return strings.TrimRight(raw, "/")
+	}
+	referer := strings.TrimSpace(headers.Get("Referer"))
+	if referer == "" {
+		return ""
+	}
+	parsed, errParse := url.Parse(referer)
+	if errParse != nil || parsed.Scheme == "" || parsed.Host == "" {
+		return ""
+	}
+	return strings.TrimRight(parsed.Scheme+"://"+parsed.Host, "/")
 }
 
 func (s *Service) status() pluginapi.ManagementResponse {

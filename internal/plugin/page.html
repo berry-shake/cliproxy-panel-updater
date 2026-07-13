@@ -3,172 +3,401 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Panel Updater - CLI Proxy API</title>
+  <title>Panel Updater · CLI Proxy API</title>
   <style>
-    /* Design tokens mirrored from the management center themes.scss. */
     :root {
       color-scheme: light dark;
-      --bg-secondary: #faf9f5;
-      --bg-primary: #f0eee8;
-      --bg-tertiary: #e9e6df;
-      --text-primary: #2d2a26;
-      --text-secondary: #6d6760;
-      --border-color: #e3e1db;
-      --border-hover: #cecac4;
-      --primary-color: #8b8680;
-      --primary-hover: #7f7a74;
-      --primary-contrast: #ffffff;
-      --success-color: #10b981;
-      --error-color: #c65746;
-      --shadow: 0 1px 2px 0 rgb(0 0 0 / 0.08);
-      --radius-md: 8px;
-      --radius-lg: 12px;
-      --focus-ring: rgba(139, 134, 128, 0.18);
+      --bg-base: #f5f4ef;
+      --bg-elevated: #ffffff;
+      --bg-muted: #eeece6;
+      --bg-inset: #f8f7f2;
+      --text-primary: #201f1c;
+      --text-secondary: #6b665f;
+      --text-muted: #96908a;
+      --border-subtle: #e3e1db;
+      --border-strong: #d1cec7;
+      --accent: #2f6bff;
+      --accent-hover: #245ae0;
+      --accent-soft: rgba(47, 107, 255, 0.10);
+      --success: #10a37f;
+      --success-soft: rgba(16, 163, 127, 0.12);
+      --danger: #d0463b;
+      --danger-soft: rgba(208, 70, 59, 0.12);
+      --warning: #c9862c;
+      --warning-soft: rgba(201, 134, 44, 0.14);
+      --shadow-sm: 0 1px 2px rgba(24, 22, 20, 0.05);
+      --shadow-md: 0 4px 12px rgba(24, 22, 20, 0.08);
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Roboto Mono", monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
     }
     [data-theme='white'] {
-      --bg-secondary: #ffffff;
-      --bg-primary: #ffffff;
-      --bg-tertiary: #f6f6f6;
-      --border-color: #e5e5e5;
-      --border-hover: #cccccc;
+      --bg-base: #ffffff;
+      --bg-elevated: #ffffff;
+      --bg-muted: #f4f4f4;
+      --bg-inset: #fafafa;
+      --border-subtle: #ececec;
+      --border-strong: #d9d9d9;
     }
     [data-theme='dark'] {
-      --bg-secondary: #151412;
-      --bg-primary: #1d1b18;
-      --bg-tertiary: #262320;
-      --text-primary: #f6f4f1;
-      --text-secondary: #c9c3bb;
-      --border-color: #3a3530;
-      --border-hover: #5a544d;
-      --primary-hover: #9a948e;
-      --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3);
+      --bg-base: #16151a;
+      --bg-elevated: #1e1d23;
+      --bg-muted: #262530;
+      --bg-inset: #1a1920;
+      --text-primary: #f2f1ee;
+      --text-secondary: #b6b1a8;
+      --text-muted: #7f7a70;
+      --border-subtle: #302f38;
+      --border-strong: #45434f;
+      --accent: #6a92ff;
+      --accent-hover: #86a5ff;
+      --accent-soft: rgba(106, 146, 255, 0.16);
+      --success: #22c39a;
+      --success-soft: rgba(34, 195, 154, 0.18);
+      --danger: #ef6f60;
+      --danger-soft: rgba(239, 111, 96, 0.18);
+      --warning: #e0a144;
+      --warning-soft: rgba(224, 161, 68, 0.18);
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+      --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.45);
     }
     * { box-sizing: border-box; }
+    html, body { height: 100%; }
     body {
       margin: 0;
-      background-color: var(--bg-secondary);
+      background: var(--bg-base);
       color: var(--text-primary);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
-        'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-      line-height: 1.5;
+      font-family: var(--font-sans);
+      font-size: 14px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
     }
-    main { max-width: 820px; margin: 48px auto; padding: 0 20px; }
-    .card {
-      background-color: var(--bg-primary);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow);
-      padding: 24px;
-      margin-bottom: 16px;
+    main {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 40px 20px 64px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
     }
-    h1 { margin: 0 0 8px; font-size: 18px; font-weight: 700; color: var(--text-primary); }
-    p { margin: 0; color: var(--text-secondary); font-size: 14px; }
-    code {
-      font-family: 'Courier New', Courier, monospace;
-      background-color: var(--bg-tertiary);
-      border-radius: 4px;
-      padding: 1px 5px;
+    header.hero {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+    .brand-mark svg { width: 22px; height: 22px; }
+    .brand h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .brand p {
+      margin: 2px 0 0;
+      color: var(--text-secondary);
       font-size: 13px;
     }
-    label { display: block; font-weight: 600; margin-bottom: 4px; }
-    input {
-      width: 100%;
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      padding: 10px 12px;
-      background-color: var(--bg-secondary);
-      color: var(--text-primary);
-      font: inherit;
-      transition: border-color 0.15s, box-shadow 0.15s;
+    .health {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--bg-muted);
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid var(--border-subtle);
     }
-    input:focus {
-      outline: none;
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px var(--focus-ring);
+    .health .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      box-shadow: 0 0 0 3px rgba(0, 0, 0, 0);
+      transition: background-color 0.2s, box-shadow 0.2s;
     }
-    .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+    .health[data-state="ok"] { color: var(--success); background: var(--success-soft); border-color: transparent; }
+    .health[data-state="ok"] .dot { background: var(--success); box-shadow: 0 0 0 3px var(--success-soft); }
+    .health[data-state="missing"] { color: var(--warning); background: var(--warning-soft); border-color: transparent; }
+    .health[data-state="missing"] .dot { background: var(--warning); box-shadow: 0 0 0 3px var(--warning-soft); }
+    .health[data-state="error"] { color: var(--danger); background: var(--danger-soft); border-color: transparent; }
+    .health[data-state="error"] .dot { background: var(--danger); box-shadow: 0 0 0 3px var(--danger-soft); }
+    .card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .card-header h2 {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-secondary);
+    }
+    .card-header .hint {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .card-body { padding: 20px; }
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
     .btn {
       display: inline-flex;
       align-items: center;
-      justify-content: center;
       gap: 8px;
-      border: 1px solid transparent;
+      padding: 10px 16px;
       border-radius: var(--radius-md);
-      padding: 10px 14px;
       font: inherit;
       font-weight: 600;
+      font-size: 14px;
       cursor: pointer;
-      transition: all 0.15s;
+      border: 1px solid transparent;
+      transition: transform 0.06s, background-color 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
+      min-height: 40px;
     }
-    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn svg { width: 16px; height: 16px; }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    .btn:not(:disabled):active { transform: translateY(1px); }
     .btn-primary {
-      background-color: var(--primary-color);
-      border-color: var(--primary-color);
-      color: var(--primary-contrast);
+      background: var(--accent);
+      color: #ffffff;
+      border-color: var(--accent);
+      box-shadow: 0 1px 2px rgba(47, 107, 255, 0.25);
     }
-    .btn-primary:hover:not(:disabled) {
-      background-color: var(--primary-hover);
-      border-color: var(--primary-hover);
-    }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
     .btn-secondary {
-      background-color: var(--bg-tertiary);
-      border-color: var(--border-color);
+      background: var(--bg-elevated);
       color: var(--text-primary);
+      border-color: var(--border-strong);
     }
-    .btn-secondary:hover:not(:disabled) { border-color: var(--border-hover); }
-    dl { display: grid; grid-template-columns: 190px 1fr; gap: 9px 14px; margin: 0; font-size: 14px; }
-    dt { color: var(--text-secondary); }
-    dd { margin: 0; overflow-wrap: anywhere; }
-    .result-title { font-weight: 700; font-size: 14px; }
-    pre {
+    .btn-secondary:hover:not(:disabled) { background: var(--bg-muted); }
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-secondary);
+      border-color: transparent;
+      padding: 6px 10px;
+      min-height: auto;
+      font-weight: 500;
+    }
+    .btn-ghost:hover:not(:disabled) { color: var(--text-primary); background: var(--bg-muted); }
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    .btn-secondary .spinner {
+      border-color: rgba(0, 0, 0, 0.15);
+      border-top-color: var(--text-primary);
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .action-hint {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 14px;
+    }
+    .field {
+      background: var(--bg-inset);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+    .field .label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+    }
+    .field .value {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      color: var(--text-primary);
+      word-break: break-all;
+      overflow-wrap: anywhere;
+    }
+    .field .value.dim { color: var(--text-muted); font-style: italic; font-family: var(--font-sans); }
+    .log {
+      margin: 0;
+      padding: 14px 16px;
+      background: var(--bg-inset);
+      border-top: 1px solid var(--border-subtle);
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      color: var(--text-secondary);
       white-space: pre-wrap;
       overflow-wrap: anywhere;
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 13px;
-      background-color: var(--bg-secondary);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      padding: 14px;
-      min-height: 22px;
-      margin: 12px 0 0;
+      min-height: 60px;
+      max-height: 320px;
+      overflow-y: auto;
     }
-    .ok { color: var(--success-color); }
-    .error { color: var(--error-color); }
-    @media (max-width: 640px) { dl { grid-template-columns: 1fr; } dt { margin-top: 8px; } }
+    .log[data-state="ok"] { color: var(--success); background: var(--success-soft); }
+    .log[data-state="error"] { color: var(--danger); background: var(--danger-soft); }
+    .log[data-state="working"] { color: var(--text-secondary); background: var(--bg-inset); }
+    footer {
+      margin-top: 8px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+    footer a { color: inherit; text-decoration: none; border-bottom: 1px dashed var(--border-strong); }
+    footer a:hover { color: var(--text-primary); }
+    @media (max-width: 620px) {
+      main { padding: 24px 14px 40px; }
+      header.hero { flex-direction: column; align-items: flex-start; }
+      .card-header { flex-direction: column; align-items: flex-start; }
+    }
   </style>
 </head>
 <body>
 <main>
+  <header class="hero">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12a9 9 0 1 1-3.13-6.83"/>
+          <polyline points="21 4 21 10 15 10"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Panel Updater</h1>
+        <p>Refresh the CLI Proxy API management panel from GitHub.</p>
+      </div>
+    </div>
+    <div class="health" id="health" data-state="unknown" role="status" aria-live="polite">
+      <span class="dot" aria-hidden="true"></span>
+      <span id="health-label">Not checked</span>
+    </div>
+  </header>
+
   <section class="card">
-    <h1>Management Panel Updater</h1>
-    <p>Reads <code>remote-management.panel-github-repository</code> from the active host config and atomically updates <code>management.html</code>.</p>
-  </section>
-  <section class="card">
-    <div class="actions">
-      <button id="status-button" class="btn btn-secondary" type="button">Check status</button>
-      <button id="update-button" class="btn btn-primary" type="button">Update now</button>
+    <div class="card-header">
+      <h2>Actions</h2>
+      <span class="hint">Runs the same digest-verified update as the CLI</span>
+    </div>
+    <div class="card-body">
+      <div class="actions">
+        <button id="update-button" class="btn btn-primary" type="button">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3v10"/>
+            <polyline points="7 8 12 3 17 8"/>
+            <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>
+          </svg>
+          <span class="btn-label">Update now</span>
+        </button>
+        <button id="status-button" class="btn btn-secondary" type="button">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="1 4 1 10 7 10"/>
+            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+          </svg>
+          <span class="btn-label">Refresh status</span>
+        </button>
+      </div>
+      <p class="action-hint">The update replaces <code>management.html</code> in place after verifying the GitHub release SHA-256.</p>
     </div>
   </section>
+
   <section class="card">
-    <dl>
-      <dt>Config file</dt><dd id="config-file">—</dd>
-      <dt>Config readable</dt><dd id="config-readable">—</dd>
-      <dt>Panel repository</dt><dd id="repository">—</dd>
-      <dt>Release API</dt><dd id="release-url">—</dd>
-      <dt>Static directory</dt><dd id="static-dir">—</dd>
-      <dt>Panel file</dt><dd id="file-path">—</dd>
-      <dt>File state</dt><dd id="file-state">—</dd>
-      <dt>SHA-256</dt><dd id="sha256">—</dd>
-    </dl>
+    <div class="card-header">
+      <h2>Panel state</h2>
+      <span class="hint" id="state-updated">—</span>
+    </div>
+    <div class="card-body">
+      <div class="grid">
+        <div class="field">
+          <span class="label">Local file</span>
+          <span class="value" id="field-file-state">Unknown</span>
+        </div>
+        <div class="field">
+          <span class="label">Size</span>
+          <span class="value" id="field-size">—</span>
+        </div>
+        <div class="field">
+          <span class="label">Modified</span>
+          <span class="value" id="field-modified">—</span>
+        </div>
+        <div class="field">
+          <span class="label">SHA-256</span>
+          <span class="value" id="field-hash">—</span>
+        </div>
+        <div class="field">
+          <span class="label">Panel path</span>
+          <span class="value" id="field-file-path">—</span>
+        </div>
+        <div class="field">
+          <span class="label">Static directory</span>
+          <span class="value" id="field-static-dir">—</span>
+        </div>
+        <div class="field">
+          <span class="label">GitHub repository</span>
+          <span class="value" id="field-repository">—</span>
+        </div>
+        <div class="field">
+          <span class="label">Release API</span>
+          <span class="value" id="field-release-url">—</span>
+        </div>
+        <div class="field">
+          <span class="label">Host config</span>
+          <span class="value" id="field-config-file">—</span>
+        </div>
+      </div>
+    </div>
+    <pre class="log" id="log" data-state="idle">Ready. Click <b>Refresh status</b> to load the current panel state.</pre>
   </section>
-  <section class="card">
-    <span class="result-title">Result</span>
-    <pre id="result">Ready.</pre>
-  </section>
+
+  <footer>
+    Managed by the panel-updater plugin ·
+    <a href="https://github.com/berry-shake/cliproxy-panel-updater" target="_blank" rel="noopener">source</a>
+  </footer>
 </main>
 <script>
 (() => {
-  // Follow the management center theme preference (zustand persist payload).
   function applyPanelTheme() {
     let theme = 'auto';
     try {
@@ -190,13 +419,75 @@
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyPanelTheme);
   }
 
-  const statusButton = document.getElementById('status-button');
   const updateButton = document.getElementById('update-button');
-  const result = document.getElementById('result');
+  const statusButton = document.getElementById('status-button');
+  const health = document.getElementById('health');
+  const healthLabel = document.getElementById('health-label');
+  const stateUpdated = document.getElementById('state-updated');
+  const log = document.getElementById('log');
 
-  function setResult(message, isError) {
-    result.textContent = message;
-    result.className = isError ? 'error' : 'ok';
+  const fieldFileState = document.getElementById('field-file-state');
+  const fieldSize = document.getElementById('field-size');
+  const fieldModified = document.getElementById('field-modified');
+  const fieldHash = document.getElementById('field-hash');
+  const fieldFilePath = document.getElementById('field-file-path');
+  const fieldStaticDir = document.getElementById('field-static-dir');
+  const fieldRepository = document.getElementById('field-repository');
+  const fieldReleaseURL = document.getElementById('field-release-url');
+  const fieldConfigFile = document.getElementById('field-config-file');
+
+  function setLog(state, message) {
+    log.dataset.state = state;
+    if (message instanceof Node) {
+      log.textContent = '';
+      log.appendChild(message);
+    } else {
+      log.textContent = message;
+    }
+  }
+
+  function setHealth(state, label) {
+    health.dataset.state = state;
+    healthLabel.textContent = label;
+  }
+
+  function setBusy(button, busy) {
+    button.disabled = busy;
+    const label = button.querySelector('.btn-label');
+    if (busy) {
+      if (!button.dataset.originalLabel) button.dataset.originalLabel = label.textContent;
+      label.textContent = 'Working…';
+    } else if (button.dataset.originalLabel) {
+      label.textContent = button.dataset.originalLabel;
+    }
+  }
+
+  function formatBytes(n) {
+    if (!Number.isFinite(n) || n <= 0) return '—';
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let i = 0;
+    let value = n;
+    while (value >= 1024 && i < units.length - 1) { value /= 1024; i++; }
+    return `${value.toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
+  }
+
+  function formatWhen(iso) {
+    if (!iso) return '—';
+    try {
+      const parsed = new Date(iso);
+      if (isNaN(parsed.valueOf())) return iso;
+      return parsed.toLocaleString();
+    } catch (_) { return iso; }
+  }
+
+  function dim(node, value) {
+    if (!value) {
+      node.textContent = '—';
+      node.classList.add('dim');
+    } else {
+      node.textContent = value;
+      node.classList.remove('dim');
+    }
   }
 
   async function api(path) {
@@ -209,44 +500,70 @@
   }
 
   function renderStatus(data) {
-    document.getElementById('config-file').textContent = data.config_file.path || '—';
-    document.getElementById('config-readable').textContent = data.config_file.readable ? 'yes' : `no${data.config_file.error ? ` — ${data.config_file.error}` : ''}`;
-    document.getElementById('repository').textContent = data.panel_github_repository || '—';
-    document.getElementById('release-url').textContent = data.release_url || '—';
-    document.getElementById('static-dir').textContent = data.static_dir || '—';
-    document.getElementById('file-path').textContent = data.file_path || '—';
-    document.getElementById('file-state').textContent = data.exists ? `${data.size} bytes, modified ${data.modified_at}` : 'missing';
-    document.getElementById('sha256').textContent = data.local_sha256 || '—';
+    if (data.exists) {
+      setHealth('ok', 'Panel present');
+      fieldFileState.classList.remove('dim');
+      fieldFileState.textContent = 'Present';
+    } else {
+      setHealth('missing', 'Panel missing');
+      fieldFileState.classList.remove('dim');
+      fieldFileState.textContent = 'Missing';
+    }
+    dim(fieldSize, data.exists ? formatBytes(data.size) : '');
+    dim(fieldModified, data.exists ? formatWhen(data.modified_at) : '');
+    dim(fieldHash, data.local_sha256 || '');
+    dim(fieldFilePath, data.file_path);
+    dim(fieldStaticDir, data.static_dir);
+    dim(fieldRepository, data.panel_github_repository);
+    dim(fieldReleaseURL, data.release_url);
+    if (data.config_file && data.config_file.path) {
+      fieldConfigFile.classList.remove('dim');
+      fieldConfigFile.textContent = data.config_file.path + (data.config_file.readable ? '' : ' (unreadable)');
+    } else {
+      dim(fieldConfigFile, '');
+    }
+    stateUpdated.textContent = 'Checked ' + new Date().toLocaleTimeString();
   }
 
-  async function checkStatus() {
-    statusButton.disabled = true;
+  async function checkStatus(silent) {
+    setBusy(statusButton, true);
+    if (!silent) setLog('working', 'Fetching status…');
     try {
       const data = await api('/v0/resource/plugins/panel-updater/status');
       renderStatus(data);
-      setResult('Status loaded.', false);
+      if (!silent) setLog('ok', 'Status loaded successfully.');
     } catch (error) {
-      setResult(error.message, true);
+      setHealth('error', 'Status failed');
+      setLog('error', 'Failed to load status: ' + error.message);
     } finally {
-      statusButton.disabled = false;
+      setBusy(statusButton, false);
     }
   }
 
   async function updatePanel() {
-    updateButton.disabled = true;
+    setBusy(updateButton, true);
+    setLog('working', 'Downloading latest release and verifying digest…');
     try {
       const data = await api('/v0/resource/plugins/panel-updater/update');
-      setResult(`${data.message}\nsource=${data.source}\nhash=${data.hash}`, false);
-      await checkStatus();
+      const parts = [data.message || 'Update completed.'];
+      if (data.source) parts.push('source: ' + data.source);
+      if (data.hash) parts.push('sha256: ' + data.hash);
+      if (typeof data.updated === 'boolean') parts.push('updated: ' + data.updated);
+      setLog('ok', parts.join('\n'));
+      await checkStatus(true);
     } catch (error) {
-      setResult(error.message, true);
+      setLog('error', 'Update failed: ' + error.message);
+      setHealth('error', 'Update failed');
     } finally {
-      updateButton.disabled = false;
+      setBusy(updateButton, false);
     }
   }
 
-  statusButton.addEventListener('click', checkStatus);
+  statusButton.addEventListener('click', () => checkStatus(false));
   updateButton.addEventListener('click', updatePanel);
+
+  // Load status automatically once so the panel isn't blank on open.
+  checkStatus(true);
 })();
 </script>
 </body>

@@ -37,8 +37,8 @@ plugins:
         name: Panel Updater
         description: Manually update the management center panel (management.html).
         author: berry-shake
-        version: 0.1.2
-        release-tag: v0.1.2
+        version: 0.1.3
+        release-tag: v0.1.3
         repository: https://github.com/berry-shake/cliproxy-panel-updater
         install:
           type: github-release
@@ -68,7 +68,27 @@ plugins:
          enabled: true
    ```
 
-No plugin-specific configuration is required or supported.
+## Configuration
+
+| Key | Type | Description |
+| --- | --- | --- |
+| `allowed_origins` | string | Optional. Comma-separated origin list (e.g. `https://admin.example, https://ops.example`). Sets the CSP `frame-ancestors` list so those origins may embed the panel in an iframe, and restricts the `/status` and `/update` resource endpoints to requests whose `Origin` (fallback `Referer`) matches one of the entries. Empty disables both. |
+
+Example:
+
+```yaml
+plugins:
+  enabled: true
+  configs:
+    panel-updater:
+      enabled: true
+      allowed_origins: "https://admin.example.com, https://ops.example.com"
+```
+
+Entries are trimmed of whitespace and trailing slashes and deduplicated. When
+`allowed_origins` is empty, the CSP `frame-ancestors` stays at `'none'` and
+the resource endpoints accept requests regardless of origin (same behavior as
+v0.1.2).
 
 ## Use
 
@@ -127,8 +147,8 @@ returns HTTP 409.
 ```bash
 go test ./...
 go build -buildmode=c-shared \
-  -ldflags '-X main.pluginVersion=0.1.2-dev' \
-  -o panel-updater-v0.1.2-dev.dylib .
+  -ldflags '-X main.pluginVersion=0.1.3-dev' \
+  -o panel-updater-v0.1.3-dev.dylib .
 ```
 
 Use `.so` on Linux and `.dll` on Windows. The c-shared build also produces a
@@ -137,13 +157,16 @@ C header; the host does not need it.
 ## Security notes
 
 - The panel page and its status/update endpoints are exposed as unauthenticated
-  `resource` routes. Anyone able to reach the CLIProxyAPI HTTP port can trigger
-  an update.
-- Update content is still constrained: the plugin only replaces
+  `resource` routes. Anyone able to reach the CLIProxyAPI HTTP port can open
+  the panel; without `allowed_origins` they can also trigger an update.
+- Configure `allowed_origins` to restrict the browser origins that can embed
+  the panel and call the endpoints. The check uses the `Origin` header
+  (falling back to `Referer`); requests without either header are treated as
+  same-origin and permitted so CLI callers still work.
+- Update content is constrained by design: the plugin only replaces
   `management.html` with the digest-verified asset from the repository
-  configured in `remote-management.panel-github-repository`.
-- The plugin never accepts arbitrary URLs, file paths, or content from the
-  request — the caller only chooses "run an update" or "read status".
+  configured in `remote-management.panel-github-repository`. It never accepts
+  arbitrary URLs, file paths, or content from the request.
 - GitHub release digests are verified before replacement. The fallback page
   has no digest metadata; update responses clearly report `source: "fallback"`
   when it is used.

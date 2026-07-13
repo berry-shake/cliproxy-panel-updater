@@ -5,16 +5,20 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
+	"sync"
 
 	"github.com/berry-shake/cliproxy-panel-updater/internal/updater"
 	"github.com/router-for-me/CLIProxyAPI/v7/sdk/pluginabi"
 	"github.com/router-for-me/CLIProxyAPI/v7/sdk/pluginapi"
+	"gopkg.in/yaml.v3"
 )
 
 const (
 	statusPath = "/v0/resource/plugins/panel-updater/status"
 	updatePath = "/v0/resource/plugins/panel-updater/update"
 	panelPath  = "/v0/resource/plugins/panel-updater/panel"
+
+	configAllowedOrigins = "allowed_origins"
 )
 
 // UpdateRunner abstracts the updater so management handlers can be tested with a fake.
@@ -30,6 +34,9 @@ type Service struct {
 	version  string
 	runner   UpdateRunner
 	resolver ConfigResolver
+
+	mu             sync.RWMutex
+	allowedOrigins []string
 }
 
 type rpcCapabilities struct {
@@ -43,9 +50,9 @@ type rpcRegistration struct {
 }
 
 type resourceDeclaration struct {
-	Path        string
-	Menu        string
-	Description string
+	Path        string `json:"path"`
+	Menu        string `json:"menu,omitempty"`
+	Description string `json:"description,omitempty"`
 }
 
 type managementRegistration struct {
@@ -59,6 +66,14 @@ type managementRPCRequest struct {
 	Query          map[string][]string
 	Body           []byte
 	HostCallbackID string `json:"host_callback_id"`
+}
+
+type rpcLifecycleRequest struct {
+	ConfigYAML []byte `json:"config_yaml"`
+}
+
+type pluginConfig struct {
+	AllowedOrigins string `yaml:"allowed_origins"`
 }
 
 func New(version string, runner UpdateRunner, resolver ConfigResolver) *Service {
@@ -75,6 +90,7 @@ func New(version string, runner UpdateRunner, resolver ConfigResolver) *Service 
 func (s *Service) Call(method string, request []byte) []byte {
 	switch method {
 	case pluginabi.MethodPluginRegister, pluginabi.MethodPluginReconfigure:
+		s.applyConfig(request)
 		return okEnvelope(rpcRegistration{
 			SchemaVersion: pluginabi.SchemaVersion,
 			Metadata: pluginapi.Metadata{
@@ -82,7 +98,13 @@ func (s *Service) Call(method string, request []byte) []byte {
 				Version:          s.version,
 				Author:           "berry-shake",
 				GitHubRepository: "https://github.com/berry-shake/cliproxy-panel-updater",
-				ConfigFields:     []pluginapi.ConfigField{},
+				ConfigFields: []pluginapi.ConfigField{
+					{
+						Name:        configAllowedOrigins,
+						Type:        pluginapi.ConfigFieldTypeString,
+						Description: "Optional. Comma-separated origins allowed to embed the panel and call the resource endpoints. Empty disables the CSP frame-ancestors relaxation and Origin/Referer enforcement.",
+					},
+				},
 			},
 			Capabilities: rpcCapabilities{ManagementAPI: true},
 		})
@@ -105,6 +127,62 @@ func (s *Service) Call(method string, request []byte) []byte {
 	default:
 		return ErrorEnvelope("unknown_method", "unknown method: "+method)
 	}
+}
+
+// applyConfig reads plugins.configs.panel-updater from the host RPC payload and
+// updates the cached allowed_origins list. Missing payload or missing field
+// resets the list to empty.
+func (s *Service) applyConfig(request []byte) {
+	var origins []string
+	if len(request) > 0 {
+		var lifecycle rpcLifecycleRequest
+		if errUnmarshal := json.Unmarshal(request, &lifecycle); errUnmarshal == nil && len(lifecycle.ConfigYAML) > 0 {
+			var cfg pluginConfig
+			if errYAML := yaml.Unmarshal(lifecycle.ConfigYAML, &cfg); errYAML == nil {
+				origins = parseOrigins(cfg.AllowedOrigins)
+			}
+		}
+	}
+	s.mu.Lock()
+	s.allowedOrigins = origins
+	s.mu.Unlock()
+}
+
+// AllowedOrigins returns a snapshot of the configured origin list.
+func (s *Service) AllowedOrigins() []string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if len(s.allowedOrigins) == 0 {
+		return nil
+	}
+	out := make([]string, len(s.allowedOrigins))
+	copy(out, s.allowedOrigins)
+	return out
+}
+
+func parseOrigins(raw string) []string {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return nil
+	}
+	seen := map[string]struct{}{}
+	out := make([]string, 0, 4)
+	for _, part := range strings.Split(raw, ",") {
+		origin := strings.TrimSpace(part)
+		if origin == "" {
+			continue
+		}
+		origin = strings.TrimRight(origin, "/")
+		if _, dup := seen[origin]; dup {
+			continue
+		}
+		seen[origin] = struct{}{}
+		out = append(out, origin)
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
 }
 
 func okEnvelope(result any) []byte {
