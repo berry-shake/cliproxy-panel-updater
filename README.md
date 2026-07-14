@@ -37,8 +37,8 @@ plugins:
         name: Panel Updater
         description: Manually update the management center panel (management.html).
         author: berry-shake
-        version: 0.1.6
-        release-tag: v0.1.6
+        version: 0.1.7
+        release-tag: v0.1.7
         repository: https://github.com/berry-shake/cliproxy-panel-updater
         install:
           type: github-release
@@ -153,8 +153,8 @@ returns HTTP 409.
 ```bash
 go test ./...
 go build -buildmode=c-shared \
-  -ldflags '-X main.pluginVersion=0.1.6-dev' \
-  -o panel-updater-v0.1.6-dev.dylib .
+  -ldflags '-X main.pluginVersion=0.1.7-dev' \
+  -o panel-updater-v0.1.7-dev.dylib .
 ```
 
 Use `.so` on Linux and `.dll` on Windows. The c-shared build also produces a
