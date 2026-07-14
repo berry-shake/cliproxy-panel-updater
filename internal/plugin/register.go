@@ -102,7 +102,7 @@ func (s *Service) Call(method string, request []byte) []byte {
 					{
 						Name:        configAllowedOrigins,
 						Type:        pluginapi.ConfigFieldTypeString,
-						Description: "Comma-separated origins trusted to embed the panel and call the resource endpoints cross-origin. Empty is the strictest default: iframe embedding stays blocked (frame-ancestors 'none') and cross-origin browser requests are rejected.",
+						Description: "受信任的来源列表（逗号分隔），允许以 iframe 嵌入面板并跨源调用资源接口。留空为最严格默认：禁止任何 iframe 嵌入（frame-ancestors 'none'），并拒绝跨源浏览器请求。",
 					},
 				},
 			},
