@@ -97,26 +97,26 @@
       gap: 12px;
     }
     .brand-mark {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
+      width: 40px;
+      height: 40px;
+      border-radius: 11px;
       background: var(--accent-soft);
       color: var(--accent);
       display: grid;
       place-items: center;
       flex-shrink: 0;
     }
-    .brand-mark svg { width: 18px; height: 18px; }
+    .brand-mark svg { width: 20px; height: 20px; }
     .brand h1 {
       margin: 0;
-      font-size: 17px;
+      font-size: 18px;
       font-weight: 700;
       letter-spacing: -0.01em;
     }
     .brand p {
-      margin: 1px 0 0;
+      margin: 2px 0 0;
       color: var(--text-secondary);
-      font-size: 12px;
+      font-size: 13px;
     }
     .hero-side {
       display: flex;
@@ -184,7 +184,7 @@
       overflow: hidden;
     }
     .card-header {
-      padding: 10px 16px;
+      padding: 12px 18px;
       border-bottom: 1px solid var(--border-subtle);
       display: flex;
       align-items: center;
@@ -203,7 +203,7 @@
       font-size: 12px;
       color: var(--text-muted);
     }
-    .card-body { padding: 12px 16px; }
+    .card-body { padding: 14px 18px; }
     .actions {
       display: flex;
       gap: 10px;
@@ -212,18 +212,18 @@
     .btn {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
+      gap: 8px;
+      padding: 8px 14px;
       border-radius: var(--radius-md);
       font: inherit;
       font-weight: 600;
-      font-size: 13px;
+      font-size: 13.5px;
       cursor: pointer;
       border: 1px solid transparent;
       transition: transform 0.06s, background-color 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
-      min-height: 32px;
+      min-height: 36px;
     }
-    .btn svg { width: 14px; height: 14px; }
+    .btn svg { width: 15px; height: 15px; }
     .btn:disabled { opacity: 0.55; cursor: not-allowed; }
     .btn:not(:disabled):active { transform: translateY(1px); }
     .btn-primary {
@@ -254,20 +254,21 @@
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-      gap: 8px;
+      gap: 10px;
     }
     .field {
       background: var(--bg-inset);
       border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-sm);
-      padding: 8px 10px;
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 3px;
       min-width: 0;
+      position: relative;
     }
     .field .label {
-      font-size: 10.5px;
+      font-size: 11px;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.06em;
@@ -275,27 +276,48 @@
     }
     .field .value {
       font-family: var(--font-mono);
-      font-size: 12px;
+      font-size: 12.5px;
       color: var(--text-primary);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       min-width: 0;
     }
-    .field .value[title] { cursor: help; }
+    .field .value[data-tip] { cursor: help; }
     .field .value.dim { color: var(--text-muted); font-style: italic; font-family: var(--font-sans); }
+    .field .value[data-tip]:hover::after {
+      content: attr(data-tip);
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      top: calc(100% + 4px);
+      z-index: 20;
+      padding: 8px 10px;
+      background: var(--text-primary);
+      color: var(--bg-elevated);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-style: normal;
+      line-height: 1.5;
+      white-space: normal;
+      word-break: break-all;
+      overflow-wrap: anywhere;
+      box-shadow: var(--shadow-md);
+      pointer-events: none;
+    }
     .log {
       margin: 0;
-      padding: 8px 14px;
+      padding: 10px 18px;
       background: var(--bg-inset);
       border-top: 1px solid var(--border-subtle);
       font-family: var(--font-mono);
-      font-size: 12px;
+      font-size: 12.5px;
       color: var(--text-secondary);
       white-space: pre-wrap;
       overflow-wrap: anywhere;
       min-height: 0;
-      max-height: 140px;
+      max-height: 160px;
       overflow-y: auto;
     }
     .log[data-state="ok"] { color: var(--success); background: var(--success-soft); }
@@ -674,10 +696,12 @@
     if (!value) {
       node.textContent = '—';
       node.classList.add('dim');
+      node.removeAttribute('data-tip');
       node.removeAttribute('title');
     } else {
       node.textContent = value;
       node.classList.remove('dim');
+      node.setAttribute('data-tip', value);
       node.setAttribute('title', value);
     }
   }
@@ -687,6 +711,7 @@
       fieldConfigFile.classList.remove('dim');
       const display = uiState.configFileValue + (uiState.configFileReadable ? '' : t('value.unreadable'));
       fieldConfigFile.textContent = display;
+      fieldConfigFile.setAttribute('data-tip', display);
       fieldConfigFile.setAttribute('title', display);
     } else {
       dim(fieldConfigFile, '');
