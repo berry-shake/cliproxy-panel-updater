@@ -692,6 +692,16 @@
     try { return date.toLocaleTimeString(localeTag()); } catch (_) { return date.toISOString(); }
   }
 
+  function applyTip(node, value) {
+    if (node.scrollWidth > node.clientWidth + 1) {
+      node.setAttribute('data-tip', value);
+      node.setAttribute('title', value);
+    } else {
+      node.removeAttribute('data-tip');
+      node.removeAttribute('title');
+    }
+  }
+
   function dim(node, value) {
     if (!value) {
       node.textContent = '—';
@@ -701,8 +711,7 @@
     } else {
       node.textContent = value;
       node.classList.remove('dim');
-      node.setAttribute('data-tip', value);
-      node.setAttribute('title', value);
+      applyTip(node, value);
     }
   }
 
@@ -711,12 +720,22 @@
       fieldConfigFile.classList.remove('dim');
       const display = uiState.configFileValue + (uiState.configFileReadable ? '' : t('value.unreadable'));
       fieldConfigFile.textContent = display;
-      fieldConfigFile.setAttribute('data-tip', display);
-      fieldConfigFile.setAttribute('title', display);
+      applyTip(fieldConfigFile, display);
     } else {
       dim(fieldConfigFile, '');
     }
   }
+
+  function refreshAllTips() {
+    document.querySelectorAll('.field .value').forEach((node) => {
+      if (node.classList.contains('dim')) return;
+      const value = node.textContent;
+      if (!value || value === '—') return;
+      applyTip(node, value);
+    });
+  }
+
+  window.addEventListener('resize', refreshAllTips);
 
   function renderFileStateField() {
     if (uiState.fileState === 'unknown') {
