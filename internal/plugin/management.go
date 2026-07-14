@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/berry-shake/cliproxy-panel-updater-plugin/internal/updater"
+	"github.com/berry-shake/cpa-panel-updater-plugin/internal/updater"
 	"github.com/router-for-me/CLIProxyAPI/v7/sdk/pluginapi"
 )
 

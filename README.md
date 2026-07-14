@@ -39,7 +39,7 @@ plugins:
         author: berry-shake
         version: 0.1.9
         release-tag: v0.1.9
-        repository: https://github.com/berry-shake/cliproxy-panel-updater-plugin
+        repository: https://github.com/berry-shake/cpa-panel-updater-plugin
         install:
           type: github-release
 ```

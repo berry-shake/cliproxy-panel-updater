@@ -1,4 +1,4 @@
-module github.com/berry-shake/cliproxy-panel-updater-plugin
+module github.com/berry-shake/cpa-panel-updater-plugin
 
 go 1.26.0
 

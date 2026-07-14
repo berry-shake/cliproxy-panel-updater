@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/berry-shake/cliproxy-panel-updater-plugin/internal/updater"
+	"github.com/berry-shake/cpa-panel-updater-plugin/internal/updater"
 	"github.com/router-for-me/CLIProxyAPI/v7/sdk/pluginabi"
 	"github.com/router-for-me/CLIProxyAPI/v7/sdk/pluginapi"
 	"gopkg.in/yaml.v3"
@@ -97,7 +97,7 @@ func (s *Service) Call(method string, request []byte) []byte {
 				Name:             "Panel Updater",
 				Version:          s.version,
 				Author:           "berry-shake",
-				GitHubRepository: "https://github.com/berry-shake/cliproxy-panel-updater-plugin",
+				GitHubRepository: "https://github.com/berry-shake/cpa-panel-updater-plugin",
 				ConfigFields: []pluginapi.ConfigField{
 					{
 						Name:        configAllowedOrigins,
