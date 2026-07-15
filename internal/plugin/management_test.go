@@ -112,24 +112,23 @@ func TestManagementRegisterDeclaresExpectedResources(t *testing.T) {
 
 	service := New("dev", &fakeRunner{}, func() HostConfig { return HostConfig{} })
 	registration := decodeEnvelopeResult[managementRegistration](t, service.Call(pluginabi.MethodManagementRegister, []byte(`{}`)))
-	if len(registration.Resources) != 3 {
+	if len(registration.Resources) != 4 {
 		t.Fatalf("resources = %+v", registration.Resources)
 	}
 	paths := map[string]string{}
 	for _, res := range registration.Resources {
 		paths[res.Path] = res.Menu
 	}
-	if _, ok := paths["/panel"]; !ok {
-		t.Fatalf("resources missing /panel: %+v", registration.Resources)
-	}
-	if _, ok := paths["/status"]; !ok {
-		t.Fatalf("resources missing /status: %+v", registration.Resources)
-	}
-	if _, ok := paths["/update"]; !ok {
-		t.Fatalf("resources missing /update: %+v", registration.Resources)
+	for _, expected := range []string{"/panel", "/status", "/update", "/logo.png"} {
+		if _, ok := paths[expected]; !ok {
+			t.Fatalf("resources missing %s: %+v", expected, registration.Resources)
+		}
 	}
 	if paths["/panel"] != "Panel Updater" {
 		t.Fatalf("/panel menu = %q", paths["/panel"])
+	}
+	if paths["/logo.png"] != "" {
+		t.Fatalf("/logo.png must have empty Menu to stay out of sidebar submenu, got %q", paths["/logo.png"])
 	}
 }
 

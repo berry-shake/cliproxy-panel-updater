@@ -98,6 +98,7 @@ func (s *Service) Call(method string, request []byte) []byte {
 				Version:          s.version,
 				Author:           "berry-shake",
 				GitHubRepository: "https://github.com/berry-shake/cpa-panel-updater-plugin",
+				Logo:             logoPath,
 				ConfigFields: []pluginapi.ConfigField{
 					{
 						Name:        configAllowedOrigins,
@@ -116,6 +117,7 @@ func (s *Service) Call(method string, request []byte) []byte {
 				{Path: "/panel", Menu: "Panel Updater", Description: "Manually update the CLIProxyAPI management panel."},
 				{Path: "/status", Description: "Show the configured panel repository and local management.html state."},
 				{Path: "/update", Description: "Download and atomically replace management.html."},
+				{Path: "/logo.png", Description: "Plugin logo served to the management panel sidebar."},
 			},
 		})
 	case pluginabi.MethodManagementHandle:
